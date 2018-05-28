@@ -4,12 +4,11 @@ name = "pypi"
 verify_ssl = true
 
 [packages]
-flask = "*"
 luigi = "*"
-toml = "*"
-click = "*"
 
 [dev-packages]
+pytest = "*"
+pytest-watch = "*"
 
 [requires]
 python_version = "3.6"
