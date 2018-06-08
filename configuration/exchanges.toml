@@ -1,0 +1,49 @@
+[bittrex]
+masterkey = ""
+mastersecret = ""
+key = ""
+secret = ""
+
+[poloniex]
+masterkey = ""
+mastersecret = ""
+key = ""
+secret = ""
+
+[kraken]
+masterkey = ""
+mastersecret = ""
+key = ""
+secret = ""
+
+[cryptopia]
+masterkey = ""
+mastersecret = ""
+key = ""
+secret = ""
+
+[bitfinex]
+masterkey = ""
+mastersecret = ""
+key = ""
+secret = ""
+
+[binance]
+masterkey = ""
+mastersecret = ""
+key = ""
+secret = ""
+
+[cex]
+masterkey = ""
+mastersecret = ""
+key = ""
+secret = ""
+clientId = ""
+
+[gdax]
+masterkey = ""
+mastersecret = ""
+key = ""
+secret = ""
+passphrase = ""
