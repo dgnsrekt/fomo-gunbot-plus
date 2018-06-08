@@ -44,6 +44,7 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
+.pytest_cache
 
 # Translations
 *.mo
@@ -89,3 +90,7 @@ ENV/
 .ropeproject
 *.npy
 *.pkl
+
+# Project Specific
+gunbot/
+gunbot2/
