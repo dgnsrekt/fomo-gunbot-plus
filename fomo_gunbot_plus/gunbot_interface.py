@@ -23,6 +23,12 @@ class GunBotConfigInterface:
         new_config = dict(ChainMap(self.toml_config, self.config))
         self.config = new_config
 
+    def write_to_gunbot_config(self):
+        data = self._dump_json()
+        with open(CONFIG_JS_PATH, 'w') as f:
+            f.write(data)
+        print('Wrote to configuration file.')
+
     def _load_clean(self):
         with open(CLEAN_JSON_CONFIG_PATH) as f:
             clean_json = json.loads(f.read())
@@ -38,7 +44,7 @@ class GunBotConfigInterface:
                 data[f.stem] = toml.loads(e.read())
         return data
 
-    def dump_json(self):
+    def _dump_json(self):
         data = self.config
         return json.dumps(data, indent=4)
 
@@ -46,7 +52,7 @@ class GunBotConfigInterface:
         print('writing toml files')
         data = self.config
         for section, data in data.items():
-            if section != 'pairs':
+            if 'pairs' not in section:
                 file_path = (CONFIGURATION_PATH/section).with_suffix('.toml')
                 if not file_path.exists():
                     with open(file_path, 'w') as f:
