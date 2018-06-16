@@ -1,6 +1,7 @@
 from pathlib import Path
 from subprocess import Popen, PIPE, STDOUT
 from title import show_title
+from fomo_gunbot_plus.title import show_title
 import sys
 import multiprocessing
 from time import sleep
@@ -37,6 +38,8 @@ def run_command():
 
 show_title()
 sleep(2.5)
+    show_title()
+    sleep(2.5)
 
 one = multiprocessing.Process(target=run)
 two = multiprocessing.Process(target=run_command)
