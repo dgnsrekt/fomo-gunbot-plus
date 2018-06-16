@@ -4,7 +4,7 @@ import toml
 from copy import deepcopy
 from collections import ChainMap
 
-from .constants import CLEAN_JSON_CONFIG_PATH, CONFIGURATION_PATH
+from .constants import CLEAN_JSON_CONFIG_PATH, CONFIGURATION_PATH, CONFIG_JS_PATH
 
 # TODO: THIS SHOULD NOT init exchange and token info.
 # TODO: THIS should update the gunbot config, read clean.json, and read configuration toml files
