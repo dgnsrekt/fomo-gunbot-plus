@@ -1,14 +1,41 @@
 [[source]]
+
 url = "https://pypi.org/simple"
 name = "pypi"
 verify_ssl = true
 
+
+[[source]]
+
+url = "https://repo.fury.io/run2dev/"
+verify_ssl = true
+name = "fury"
+
+
 [packages]
+
 luigi = "*"
+ccxt = "*"
+pandas = "*"
+structlog = "*"
+toml = "*"
+plotly = "*"
+dash = "*"
+dash-renderer = "*"
+dash-html-components = "*"
+dash-core-components = "*"
+colorama = "*"
+fomo-superfilter = "*"
+wget = "*"
+watchdog = "*"
+
 
 [dev-packages]
+
 pytest = "*"
 pytest-watch = "*"
 
+
 [requires]
+
 python_version = "3.6"
