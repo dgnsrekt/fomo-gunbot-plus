@@ -1,11 +1,12 @@
 import json
 import structlog
 import toml
+from datetime import datetime
 from copy import deepcopy
 from collections import ChainMap
+import pandas as pd
 
-from .constants import CLEAN_JSON_CONFIG_PATH, CONFIGURATION_PATH, CONFIG_JS_PATH
-
+from .constants import CLEAN_JSON_CONFIG_PATH, CONFIGURATION_PATH, CONFIG_JS_PATH, GUNBOT_PATH, DELISTED_PATH
 # TODO: THIS SHOULD NOT init exchange and token info.
 # TODO: THIS should update the gunbot config, read clean.json, and read configuration toml files
 # TODO: ad debug structlog
@@ -16,7 +17,7 @@ class GunBotConfigInterface:
     def __init__(self):
         self.config = self._load_clean()
 
-        self._check_configuration_toml_folder()
+        self.check_configuration_toml_folder()
         self.toml_config = self._load_tomls()
 
     def update_config_from_toml(self):
@@ -48,7 +49,7 @@ class GunBotConfigInterface:
         data = self.config
         return json.dumps(data, indent=4)
 
-    def _write_clean_configuration_tomls(self):
+    def write_clean_configuration_tomls(self):
         print('writing toml files')
         data = self.config
         for section, data in data.items():
@@ -59,7 +60,7 @@ class GunBotConfigInterface:
                         print(f'Writing {file_path}')
                         f.write(toml.dumps(data))
 
-    def _check_configuration_toml_folder(self):
+    def check_configuration_toml_folder(self):
         print('Checking toml files.')
         try:
             assert (CONFIGURATION_PATH / 'bot.toml').exists(), 'Missing bot.toml'
@@ -72,5 +73,7 @@ class GunBotConfigInterface:
 
         except AssertionError as e:
             print(e)
-            self._write_clean_configuration_tomls()
-            self._check_configuration_toml_folder()
+            self.write_clean_configuration_tomls()
+            self.check_configuration_toml_folder()
+
+
