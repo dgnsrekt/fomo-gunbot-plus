@@ -1,9 +1,11 @@
 from pathlib import Path
 from subprocess import Popen, PIPE, STDOUT
 from fomo_gunbot_plus.title import show_title
+from fomo_gunbot_plus import systemcheck
 from fomo_gunbot_plus.watch_configuration import watch_configuration_folder
 import fomo_gunbot_plus.core
 
+import shlex
 import sys
 import os
 import multiprocessing
@@ -63,6 +65,8 @@ def run_command():
     cmd = str(BASEPATH.absolute())
     cwd = str(BASEPATH.parent)
 
+    os.chmod(cmd, 0o755)
+
     process = Popen(cmd, shell=False, cwd=cwd)
     while True:
         try:
@@ -77,7 +81,7 @@ def run_command():
 def main():
 
     show_title()
-    sleep(2.5)
+    sleep(2)
 
     one = multiprocessing.Process(target=fomo_gunbot_plus.core.run)
     two = multiprocessing.Process(target=run_command)
@@ -94,4 +98,5 @@ def main():
 
 
 if __name__ == '__main__':
+    systemcheck.run()
     main()
