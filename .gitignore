@@ -93,4 +93,5 @@ ENV/
 
 # Project Specific
 gunbot/
-gunbot2/
+clean.json
+configuration/
