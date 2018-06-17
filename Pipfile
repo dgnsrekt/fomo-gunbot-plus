@@ -7,7 +7,7 @@ verify_ssl = true
 
 [[source]]
 
-url = "https://repo.fury.io/run2dev/"
+url = "https://repo.fury.io/dgnsrekt/"
 verify_ssl = true
 name = "fury"
 
@@ -28,6 +28,9 @@ colorama = "*"
 fomo-superfilter = "*"
 wget = "*"
 watchdog = "*"
+peewee = "*"
+"psycopg2" = "*"
+"psycopg2-binary" = "*"
 
 
 [dev-packages]
