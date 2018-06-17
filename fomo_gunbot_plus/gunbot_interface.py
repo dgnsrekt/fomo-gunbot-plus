@@ -76,4 +76,82 @@ class GunBotConfigInterface:
             self.write_clean_configuration_tomls()
             self.check_configuration_toml_folder()
 
-
+#
+# class GunBotStateInterface:
+#
+#     def __init__(self):
+#         self.state_json_files = list(GUNBOT_PATH.glob('*-state.json'))
+#         self.state_json_df = self._load_df()
+#         self.avaliable_state_files = self._get_avaliable_state_file()
+#
+#         self.non_zero_state_dataframe = self._get_non_zero_state_files()
+#
+#     def _load_df(self):
+#
+#         temp = []
+#         if len(self.state_json_files) > 0:
+#             package = dict()
+#             for _file in self.state_json_files:
+#                 name = _file.name.split('-')[2]
+#                 file_path = _file
+#                 mod_date = datetime.utcfromtimestamp(_file.stat().st_mtime)
+#                 package['name'] = name
+#                 package['file_path'] = file_path
+#                 package['mod_date'] = mod_date
+#                 temp.append(package)
+#
+#             df = pd.DataFrame(temp)
+#             df.sort_values(by='mod_date', inplace=True)
+#             return df
+#         else:
+#             return None
+#
+#     def _get_avaliable_state_file(self):
+#         if len(self.state_json_df) > 0:
+#             r = list(self.state_json_df['name'])
+#             r.sort()
+#             return r
+#         else:
+#             return list()
+#
+#     @property
+#     def latest_state_file(self):
+#         if len(self.state_json_df) > 0:
+#             return self.state_json_df.tail(1)['file_path'].values[0]
+#         else:
+#             None
+#
+#     @classmethod
+#     def get_delisted(cls):
+#         with open(DELISTED_PATH, 'r') as f:
+#             dlisted = toml.loads(f.read())
+#         return dlisted
+#
+#     def _get_non_zero_state_files(self):
+#         with open(self.latest_state_file, 'r') as f:
+#             last_updated_json = json.loads(f.read())
+#
+#         latest_balance_data = last_updated_json['balancesdata']
+#         latest_non_zero_balances = [
+#             coin for coin in latest_balance_data if latest_balance_data[coin]['available']]
+#
+#         delisted = GunBotStateInterface.get_delisted()
+#         latest_non_zero_balances = [
+#             coin for coin in latest_non_zero_balances if coin not in delisted]
+#
+#         latest_non_zero_balances.sort()
+#
+#         non_zero_state_files = [
+#             state_file for state_file in self.avaliable_state_files if state_file in latest_non_zero_balances]
+#         non_zero_state_files.sort()
+#         df = self.state_json_df
+#         df = df[df['name'].isin(non_zero_state_files)]
+#         print(df)
+#         return df
+#
+#     def get_bags(self):
+#         files_to_search = list(self.non_zero_state_dataframe['file_path'])
+#         print(files_to_search)
+#
+#     def get_balance(self):
+#         pass
