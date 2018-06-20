@@ -4,6 +4,7 @@ import toml
 from datetime import datetime
 from copy import deepcopy
 from collections import ChainMap
+from collections import ChainMap, OrderedDict
 import pandas as pd
 
 from .constants import CLEAN_JSON_CONFIG_PATH, CONFIGURATION_PATH, CONFIG_JS_PATH, GUNBOT_PATH, DELISTED_PATH
@@ -22,7 +23,17 @@ class GunBotConfigInterface:
 
     def update_config_from_toml(self):
         new_config = dict(ChainMap(self.toml_config, self.config))
-        self.config = new_config
+        order_config = OrderedDict()
+
+        order_config['version'] = new_config['version']
+        order_config['pairs'] = new_config['pairs']
+        order_config['strategies'] = new_config['strategies']
+        order_config['exchanges'] = new_config['exchanges']
+        order_config['bot'] = new_config['bot']
+        order_config['ws'] = new_config['ws']
+        order_config['imap_listener'] = new_config['imap_listener']
+
+        self.config = order_config
 
     def write_to_gunbot_config(self):
         data = self._dump_json()
