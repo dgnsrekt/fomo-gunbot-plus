@@ -1,13 +1,19 @@
 import json
 import structlog
 import toml
+import os
 from datetime import datetime
 from copy import deepcopy
-from collections import ChainMap
 from collections import ChainMap, OrderedDict
 import pandas as pd
 
-from .constants import CLEAN_JSON_CONFIG_PATH, CONFIGURATION_PATH, CONFIG_JS_PATH, GUNBOT_PATH, DELISTED_PATH
+from .constants import (CLEAN_JSON_CONFIG_PATH,
+                        CONFIGURATION_PATH,
+                        CONFIG_JS_PATH,
+                        GUNBOT_PATH,
+                        DELISTED_PATH,
+                        BASEPATH)
+
 # TODO: THIS SHOULD NOT init exchange and token info.
 # TODO: THIS should update the gunbot config, read clean.json, and read configuration toml files
 # TODO: ad debug structlog
@@ -87,82 +93,89 @@ class GunBotConfigInterface:
             self.write_clean_configuration_tomls()
             self.check_configuration_toml_folder()
 
-#
-# class GunBotStateInterface:
-#
-#     def __init__(self):
-#         self.state_json_files = list(GUNBOT_PATH.glob('*-state.json'))
-#         self.state_json_df = self._load_df()
-#         self.avaliable_state_files = self._get_avaliable_state_file()
-#
-#         self.non_zero_state_dataframe = self._get_non_zero_state_files()
-#
-#     def _load_df(self):
-#
-#         temp = []
-#         if len(self.state_json_files) > 0:
-#             package = dict()
-#             for _file in self.state_json_files:
-#                 name = _file.name.split('-')[2]
-#                 file_path = _file
-#                 mod_date = datetime.utcfromtimestamp(_file.stat().st_mtime)
-#                 package['name'] = name
-#                 package['file_path'] = file_path
-#                 package['mod_date'] = mod_date
-#                 temp.append(package)
-#
-#             df = pd.DataFrame(temp)
-#             df.sort_values(by='mod_date', inplace=True)
-#             return df
-#         else:
-#             return None
-#
-#     def _get_avaliable_state_file(self):
-#         if len(self.state_json_df) > 0:
-#             r = list(self.state_json_df['name'])
-#             r.sort()
-#             return r
-#         else:
-#             return list()
-#
-#     @property
-#     def latest_state_file(self):
-#         if len(self.state_json_df) > 0:
-#             return self.state_json_df.tail(1)['file_path'].values[0]
-#         else:
-#             None
-#
-#     @classmethod
-#     def get_delisted(cls):
-#         with open(DELISTED_PATH, 'r') as f:
-#             dlisted = toml.loads(f.read())
-#         return dlisted
-#
-#     def _get_non_zero_state_files(self):
-#         with open(self.latest_state_file, 'r') as f:
-#             last_updated_json = json.loads(f.read())
-#
-#         latest_balance_data = last_updated_json['balancesdata']
-#         latest_non_zero_balances = [
-#             coin for coin in latest_balance_data if latest_balance_data[coin]['available']]
-#
-#         delisted = GunBotStateInterface.get_delisted()
-#         latest_non_zero_balances = [
-#             coin for coin in latest_non_zero_balances if coin not in delisted]
-#
-#         latest_non_zero_balances.sort()
-#
-#         non_zero_state_files = [
-#             state_file for state_file in self.avaliable_state_files if state_file in latest_non_zero_balances]
-#         non_zero_state_files.sort()
-#         df = self.state_json_df
-#         df = df[df['name'].isin(non_zero_state_files)]
-#         print(df)
-#         return df
-#
-#     def get_bags(self):
-#         files_to_search = list(self.non_zero_state_dataframe['file_path'])
-#         print(files_to_search)
-#
-#     def get_balance(self):
-#         pass
+
+class GunBotStateInterface:
+
+    def __init__(self):
+        self.state_file_data = self._extract()
+        self.estimated_value = 0
+        self.raw_bags = []
+        self.real_bags = []
+        self.all_pairs = []
+
+        if self.state_file_data:
+            self._transform()
+
+    @staticmethod
+    def state_file_reader(path_):
+        with open(path_, 'r') as f:
+            return json.loads(f.read())
+
+    @staticmethod
+    def parse_name_from_path(path_):
+        return path_.name.split('-')[2]
+
+    @staticmethod
+    def parse_datetime(path_):
+        mtime = path_.stat().st_mtime
+        return datetime.utcfromtimestamp(mtime)
+
+    def _extract(self):
+        trade_state_paths = sorted(GUNBOT_PATH.glob('*-state.json'),
+                                   key=os.path.getmtime, reverse=True)
+
+        temp = []
+        for jsonpath in trade_state_paths:
+            data = GunBotStateInterface.state_file_reader(jsonpath)
+            time = GunBotStateInterface.parse_datetime(jsonpath)
+            name = GunBotStateInterface.parse_name_from_path(jsonpath)
+
+            data['name'] = name
+            data['time'] = time
+
+            temp.append(data)
+
+        if len(temp) > 0:
+            return temp
+        else:
+            return None
+
+    def _transform(self):
+        balances = self.state_file_data[0]['balancesdata']
+        positive_balances = [bal for bal in balances if balances[bal]['available'] > 0]
+
+        state_df = pd.DataFrame(self.state_file_data)
+        columns = ['name', 'Bid', 'Ask', 'quoteBalance', 'baseBalance', 'time']
+        current_df = state_df[columns]
+        current_df = current_df[current_df['name'].isin(positive_balances)]
+        current_df['price'] = (current_df['Bid'] + current_df['Ask']) / 2
+        current_df['btc_value'] = current_df['price'] * current_df['quoteBalance']
+        current_df.columns = ['name', 'bid', 'ask', 'balance', 'btc', 'time', 'price', 'btc_value']
+
+        self.raw_bags = positive_balances
+        try:
+            self.estimated_value = current_df['btc_value'].sum() + current_df['btc'][0]
+        except IndexError:
+            self.estimated_value = 0
+
+        self.real_bags = list(current_df[current_df['btc_value'] > 0.0001]['name'])
+        self.all_pairs = list(balances.keys())
+
+    @property
+    def fetch_bags(self):
+        if len(self.real_bags) > 0:
+            return self.real_bags
+        elif len(self.raw_bags) > 0:
+            return self.raw_bags
+        else:
+            return []
+
+    def load(self):
+        pass
+
+    def __repr__(self):
+        repr_ = f'Estimated Value: {self.estimated_value}\n'
+        repr_ += f'Real Bags: {self.real_bags}\n'
+        repr_ += f'Raw Bags: {self.raw_bags}\n'
+        repr_ += f'All Pairs: {self.all_pairs}\n'
+        return repr_
