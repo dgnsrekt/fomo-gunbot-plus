@@ -4,7 +4,7 @@ from fomo_superfilter.interface import BinanceDataFrameCreator
 from fomo_superfilter.superfilter import SuperFilter
 
 from .models.superhot import SuperHot, create_superhot_table
-from .models.balance import Balance, create_balance_table
+from .models.balance import Balance, create_balance_table, clean_balance_table
 from time import sleep
 
 
@@ -37,14 +37,15 @@ def filter_cold():
     gbot_pipe = GunBotStateInterface()
 
     bags = gbot_pipe.fetch_bags
-    all_pairs = gbot_pipe.all_pairs
 
     if not Balance.table_exists():
         create_balance_table()
 
+    # clean_balance_table() #TODO: add a config option to reset chart, also it will backup old charts
+
     Balance.add(gbot_pipe.estimated_value)
 
-    return bags, all_pairs
+    return bags
 
 
 def run():
@@ -55,15 +56,18 @@ def run():
 
     while True:
         filter_hot()
-        bags, all_pairs = filter_cold()
-        superhot = SuperHot.fetch_hot()
+        hot = SuperHot.fetch_hot()
 
-        print(f'bags: {bags}')
-        print(f'pairs: {all_pairs}')
-        print(f'Current hot coins in db:{superhot}')
+        bags = filter_cold()
 
-        # others_current = [other for other in binance_names if other not in hot_current]
-        # print(len(binance_names))
-        # print(len(others_current))
+        cold = [c for c in bags if c not in hot]
+
+        GBI = GunBotConfigInterface()
+        GBI.update_config_from_toml()
+        GBI.update_pairs(hot, cold, 'binance')  # TODO: Get exchange from a configuration
+        GBI.write_to_gunbot_config()
+
+        print(f'Bags: {bags}')
+        print(f'Current hot coins in db:{hot}')
 
         sleep(30)
