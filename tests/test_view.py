@@ -1,4 +1,4 @@
-from fomo_gunbot_plus.gunbot_interface import GunBotConfigInterface
+from fomo_gunbot_plus import view
 
 
 def test_import():
