@@ -14,6 +14,7 @@ class ConfigurationHandler(PatternMatchingEventHandler):
         print(event.src_path, event.event_type)  # TODO: Change to structlog
         GBI = GunBotConfigInterface()
         GBI.update_config_from_toml()
+        GBI.update_pairs_from_live()
         GBI.write_to_gunbot_config()
 
     def on_modified(self, event):
