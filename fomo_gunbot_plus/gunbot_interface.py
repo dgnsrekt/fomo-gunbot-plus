@@ -41,6 +41,33 @@ class GunBotConfigInterface:
 
         self.config = order_config
 
+    def update_pairs(self, hotpairs, coldpairs, exchange):
+        self.update_config_from_toml()
+
+        h = HotState(hotpairs)
+        c = ColdState(coldpairs)
+
+        h_pairs = h.prepare_config()
+        c_pairs = c.prepare_config()
+
+        hotcold = {**h_pairs, **c_pairs}
+
+        pairs = dict()
+        pairs[exchange] = hotcold
+
+        self.config['pairs'] = pairs
+
+    def update_pairs_from_live(self):
+        live = self._load_live()
+        self.config['pairs'] = live['pairs']
+
+    def check_for_change(self):
+        live = self._load_live()
+
+        diff = self.config == live
+        print('Compare: ', diff)
+        return diff
+
     def write_to_gunbot_config(self):
         data = self._dump_json()
         with open(CONFIG_JS_PATH, 'w') as f:
