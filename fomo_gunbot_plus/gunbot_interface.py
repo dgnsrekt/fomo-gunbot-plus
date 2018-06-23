@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from copy import deepcopy
 from collections import ChainMap, OrderedDict
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 import pandas as pd
 
 from .constants import (CLEAN_JSON_CONFIG_PATH,
@@ -13,6 +14,8 @@ from .constants import (CLEAN_JSON_CONFIG_PATH,
                         GUNBOT_PATH,
                         DELISTED_PATH,
                         BASEPATH)
+
+from .states import ColdState, HotState
 
 # TODO: THIS SHOULD NOT init exchange and token info.
 # TODO: THIS should update the gunbot config, read clean.json, and read configuration toml files
@@ -69,13 +72,22 @@ class GunBotConfigInterface:
         return diff
 
     def write_to_gunbot_config(self):
-        data = self._dump_json()
-        with open(CONFIG_JS_PATH, 'w') as f:
-            f.write(data)
-        print('Wrote to configuration file.')
+        # TODO Compare current file dictions to what is being written if no changes do nothing.
+        if not self.check_for_change():
+            data = self._dump_json()
+            with open(CONFIG_JS_PATH, 'w') as f:
+                f.write(data)
+            print('Wrote to configuration file.')
+        else:
+            print('No changes needed.')
+
+    def _load_live(self):
+        with open(CONFIG_JS_PATH, 'r') as f:
+            live_json = json.loads(f.read())
+        return live_json
 
     def _load_clean(self):
-        with open(CLEAN_JSON_CONFIG_PATH) as f:
+        with open(CLEAN_JSON_CONFIG_PATH, 'r') as f:
             clean_json = json.loads(f.read())
         return clean_json
 
@@ -133,10 +145,15 @@ class GunBotStateInterface:
         if self.state_file_data:
             self._transform()
 
-    @staticmethod
+    @staticmethod  # attempt at fixing JSONDecodeError
     def state_file_reader(path_):
-        with open(path_, 'r') as f:
-            return json.loads(f.read())
+        try:
+            with open(path_, 'r') as f:
+                return json.loads(f.read())
+        except json.decode.JSONDecodeError:
+            sleep(1)
+            with open(path_, 'r') as f:
+                return json.loads(f.read())
 
     @staticmethod
     def parse_name_from_path(path_):
@@ -165,7 +182,7 @@ class GunBotStateInterface:
         if len(temp) > 0:
             return temp
         else:
-            return None
+            return None  # TODO: Catch this None
 
     def _transform(self):
         balances = self.state_file_data[0]['balancesdata']
@@ -181,7 +198,7 @@ class GunBotStateInterface:
 
         self.raw_bags = positive_balances
         try:
-            self.estimated_value = current_df['btc_value'].sum() + current_df['btc'][0]
+            self.estimated_value = current_df['btc_value'].sum() + list(current_df['btc'])[0]
         except IndexError:
             self.estimated_value = 0
 
