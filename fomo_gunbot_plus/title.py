@@ -1,4 +1,8 @@
+# THIRD PARTY IMPORT
 from colorama import Fore, Back, Style
+
+# LOCAL IMPORT
+from .__version__ import __version__
 
 
 def show_title():
@@ -19,7 +23,7 @@ def show_title():
     print(Style.RESET_ALL, end='')
 
     # print(ph, '  GUNBOT SUPER FILTER  ', ph)  # TODO: pull version number from setup or __ver__.py
-    print(ph, '  VERSION: 0.0.1 BETA  ', ph)
+    print(ph, f'     VERSION: {__version__}    ', ph)
     print()
 
 

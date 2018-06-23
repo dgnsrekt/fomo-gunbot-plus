@@ -18,8 +18,8 @@ import plotly
 import plotly.graph_objs as go
 
 # LOCAL IMPORTS
-from fomo_gunbot_plus import view
-from fomo_gunbot_plus import systemcheck
+from fomo_gunbot_plus.view import Chart
+from fomo_gunbot_plus.systemcheck import SystemCheck
 from fomo_gunbot_plus.title import show_title
 from fomo_gunbot_plus.watch_configuration import watch_configuration_folder
 from fomo_gunbot_plus.core import Core
@@ -28,7 +28,7 @@ from fomo_gunbot_plus.core import Core
 def run_chart():
 
     url = 'http://127.0.0.1:8050/'
-    app = view.get_chart()
+    app = Chart.get_chart()
 
     threading.Timer(2.5, lambda: webbrowser.open(url)).start()
 
@@ -78,5 +78,5 @@ def main():
 
 
 if __name__ == '__main__':
-    systemcheck.run()
+    SystemCheck.run()
     main()

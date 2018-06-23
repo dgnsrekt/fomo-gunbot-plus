@@ -1,17 +1,22 @@
+# SYSTEM IMPORTS
 import time
 
+# THIRD PARTY IMPORTS
+import structlog
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
+# LOCAL IMPORTS
 from .gunbot_interface import GunBotConfigInterface
 from .constants import CONFIGURATION_PATH
 
 
 class ConfigurationHandler(PatternMatchingEventHandler):
+    logger = structlog.get_logger()
     patterns = ['*.toml']
 
     def process(self, event):
-        print(event.src_path, event.event_type)  # TODO: Change to structlog
+        self.logger.info(f'{event.src_path}|{event.event_type}')  # TODO: Change to structlog
         GBI = GunBotConfigInterface()
         GBI.update_config_from_toml()
         GBI.update_pairs_from_live()

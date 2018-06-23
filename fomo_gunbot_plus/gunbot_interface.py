@@ -1,13 +1,17 @@
+# SYSTEM IMPORTS
 import json
+import os
 import structlog
 import toml
-import os
-from datetime import datetime
-from copy import deepcopy
 from collections import ChainMap, OrderedDict
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
-import pandas as pd
+from copy import deepcopy
+from datetime import datetime
 
+# THIRD PARTY IMPORTS
+import pandas as pd
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
+
+# LOCAL IMPORTS
 from .constants import (CLEAN_JSON_CONFIG_PATH,
                         CONFIGURATION_PATH,
                         CONFIG_JS_PATH,
@@ -17,12 +21,11 @@ from .constants import (CLEAN_JSON_CONFIG_PATH,
 
 from .states import ColdState, HotState
 
-# TODO: ad debug structlog
-
 
 class GunBotConfigInterface:
 
     def __init__(self):
+        self.logger = structlog.get_logger()
         self.config = self._load_clean()
 
         self.check_configuration_toml_folder()
@@ -66,7 +69,7 @@ class GunBotConfigInterface:
         live = self._load_live()
 
         diff = self.config == live
-        print('Compare: ', diff)
+        self.logger.info(f'Compare: {diff}')
         return diff
 
     def write_to_gunbot_config(self):
@@ -75,9 +78,9 @@ class GunBotConfigInterface:
             data = self._dump_json()
             with open(CONFIG_JS_PATH, 'w') as f:
                 f.write(data)
-            print('Wrote to configuration file.')
+            self.logger.info(f'Wrote to {CONFIG_JS_PATH}')
         else:
-            print('No changes needed.')
+            self.logger.info('No changes needed.')
 
     def _load_live(self):
         with open(CONFIG_JS_PATH, 'r') as f:
@@ -104,18 +107,18 @@ class GunBotConfigInterface:
         return json.dumps(data, indent=4)
 
     def write_clean_configuration_tomls(self):
-        print('writing toml files')
+        self.logger.info('writing toml files')
         data = self.config
         for section, data in data.items():
             if 'pairs' not in section:
                 file_path = (CONFIGURATION_PATH/section).with_suffix('.toml')
                 if not file_path.exists():
                     with open(file_path, 'w') as f:
-                        print(f'Writing {file_path}')
+                        self.logger.info(f'Writing {file_path}')
                         f.write(toml.dumps(data))
 
     def check_configuration_toml_folder(self):
-        print('Checking toml files.')
+        self.logger.info('Checking toml files.')
         try:
             assert (CONFIGURATION_PATH / 'bot.toml').exists(), 'Missing bot.toml'
             assert (CONFIGURATION_PATH / 'exchanges.toml').exists(), 'Missing exchange.toml'
@@ -123,10 +126,10 @@ class GunBotConfigInterface:
             assert (CONFIGURATION_PATH / 'strategies.toml').exists(), 'Missing strategies.toml'
             assert (CONFIGURATION_PATH / 'version.toml').exists(), 'Missing version.toml'
             assert (CONFIGURATION_PATH / 'ws.toml').exists(), 'Missing ws.toml'
-            print('All toml files found.')
+            self.logger.info('All toml files found.')
 
         except AssertionError as e:
-            print(e)
+            self.logger.info(e)
             self.write_clean_configuration_tomls()
             self.check_configuration_toml_folder()
 
@@ -134,6 +137,8 @@ class GunBotConfigInterface:
 class GunBotStateInterface:
 
     def __init__(self):
+        self.logger = structlog.get_logger()
+
         self.state_file_data = self._extract()
         self.estimated_value = 0
         self.raw_bags = []

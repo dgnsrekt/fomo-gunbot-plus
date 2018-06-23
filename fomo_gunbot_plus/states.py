@@ -1,6 +1,7 @@
+# SYSTEM IMPORTS
 from abc import ABC, abstractmethod
-from time import sleep
 from random import choice
+from time import sleep
 
 
 class State(ABC):

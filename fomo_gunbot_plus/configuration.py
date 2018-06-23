@@ -1,5 +1,7 @@
+# THIRD PARTY IMPORTS
 import toml
 
+# LOCAL IMPORTS
 from .constants import CONFIGFILE_PATH
 
 

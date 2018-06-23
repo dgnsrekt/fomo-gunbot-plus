@@ -1,13 +1,16 @@
-import abc
-import luigi
+# SYSTEM IMPORTS
 import json
+import shutil
+from pathlib import Path
+
+# THIRD PARTY IMPORTS
+import luigi
+import structlog
 import toml
 import wget
 from zipfile import ZipFile
-from pathlib import Path
-import shutil
 
-from .gunbot_interface import GunBotConfigInterface
+# LOCAL IMPORTS
 from .configuration import Configuration
 from .constants import (BASEPATH,
                         CONFIGURATION_PATH,
@@ -19,6 +22,8 @@ from .constants import (BASEPATH,
                         DELISTED_PATH,
                         GUNBOT_PATH,
                         CONFIG_JS_PATH)
+
+from .gunbot_interface import GunBotConfigInterface
 
 
 class DownloadGunBotTask(luigi.Task):
@@ -143,10 +148,16 @@ class MainConfigTomlTask(luigi.Task):
 
 
 class SystemCheckTask(luigi.WrapperTask):
+
     def requires(self):
         return [GunbotFolderCheckTask(), TomlConfigCheckTask(), MainConfigTomlTask()]
 
 
-def run():
-    print('Running Systems Check')
-    luigi.build([SystemCheckTask()], local_scheduler=True)
+class SystemCheck:
+
+    logger = structlog.get_logger()
+
+    @classmethod
+    def run(cls):
+        cls.logger.info('Running Systems Checks...')
+        luigi.build([SystemCheckTask()], local_scheduler=True)

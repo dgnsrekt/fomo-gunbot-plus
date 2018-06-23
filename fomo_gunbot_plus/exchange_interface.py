@@ -1,25 +1,25 @@
+# THIRD PARTY IMPORTS
+from ccxt.base.errors import RequestTimeout
 import ccxt
 import pandas as pd
-
-from ccxt.base.errors import RequestTimeout
-from structlog import get_logger as logger
+import structlog
 
 
 class ExchangeInterface:
 
     def __init__(self, exchange):
-        self._log = logger()
+        self.logger = structlog.get_logger()
 
         self.exchange = ExchangeInterface.connect(exchange)
         self.id = self.exchange.id
-        self._log.debug('Succesfully initialized.', exchange=self.id)
+        self.logger.debug('Succesfully initialized.', exchange=self.id)
 
     @classmethod
     def connect(cls,  exchange):
         return getattr(ccxt, exchange)({'enableRateLimit': True})
 
     def fetch_tickers(self):
-        self._log.debug('Fetching tickers', exchange=self.id)
+        self.logger.debug('Fetching tickers', exchange=self.id)
         tickers = self.exchange.fetchTickers()
         tickers = list(tickers.keys())
 
