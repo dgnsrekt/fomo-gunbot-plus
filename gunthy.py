@@ -1,6 +1,7 @@
 from pathlib import Path
 from subprocess import Popen, PIPE, STDOUT
 from fomo_gunbot_plus.title import show_title
+from fomo_gunbot_plus import view
 from fomo_gunbot_plus import systemcheck
 from fomo_gunbot_plus.watch_configuration import watch_configuration_folder
 import fomo_gunbot_plus.core
@@ -23,19 +24,11 @@ import dash_html_components as html
 
 
 def chart():
-    trace = go.Scatter(
-        name='curve',
-        x=[x for x in range(100)],
-        y=[y*y for y in range(100)]
-    )
-    fig = go.Figure(data=[trace])
-
-    app = Dash(__name__)
-    app.layout = html.Div(children=[html.H1('equity-curve'),
-                                    dcc.Graph(id='equity-curve', figure=fig)])
+    app = view.get_chart()
 
     url = 'http://127.0.0.1:8050/'
     threading.Timer(2.5, lambda: webbrowser.open(url)).start()
+
     app.run_server(debug=False)  # DEBUG TRUE WILL conflict with gunbot
 
 
@@ -68,6 +61,7 @@ def run_command():
     os.chmod(cmd, 0o755)
 
     process = Popen(cmd, shell=False, cwd=cwd)
+
     while True:
         try:
             output = process.stdout.readline()
@@ -90,7 +84,8 @@ def main():
     one.start()
     two.start()
     three.start()
-    chart()
+
+    chart()  # chart.run()
 
     one.join()
     two.join()
