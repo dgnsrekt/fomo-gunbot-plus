@@ -39,7 +39,8 @@ def get_chart():
             name='equity-curve',
             x=list(data.index),
             y=list(data.btc),
-            mode='lines'
+            mode='lines',
+            connectgaps=True
         )
         layout = go.Layout(title='EQUITY CURVE',
                            xaxis=dict(autorange=True,
