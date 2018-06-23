@@ -25,19 +25,21 @@ from fomo_gunbot_plus.watch_configuration import watch_configuration_folder
 import fomo_gunbot_plus.core
 
 
-def chart():
-    app = view.get_chart()
+def run_chart():
 
     url = 'http://127.0.0.1:8050/'
+    app = view.get_chart()
+
     threading.Timer(2.5, lambda: webbrowser.open(url)).start()
 
-    app.run_server(debug=False)  # DEBUG TRUE WILL conflict with gunbot
+    app.run_server(debug=False)  # debug=TRUE Conflicts with gunbot
 
 
-def run_command():
+def run_gunthy():
 
     BASEPATH = Path(__file__).parent / 'gunbot' / 'gunthy-linx64'
     assert BASEPATH.exists()
+
     cmd = str(BASEPATH.absolute())
     cwd = str(BASEPATH.parent)
 
@@ -61,14 +63,14 @@ def main():
     sleep(2)
 
     one = multiprocessing.Process(target=fomo_gunbot_plus.core.run)
-    two = multiprocessing.Process(target=run_command)
+    two = multiprocessing.Process(target=run_gunthy)
     three = multiprocessing.Process(target=watch_configuration_folder)
 
     one.start()
     two.start()
     three.start()
 
-    chart()  # chart.run()
+    run_chart()
 
     one.join()
     two.join()
