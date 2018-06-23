@@ -96,5 +96,4 @@ gunbot/
 clean.json
 configuration/
 lin.zip
-delisted.toml
-states.toml
+config.toml
