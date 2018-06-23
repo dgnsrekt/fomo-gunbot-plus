@@ -32,25 +32,6 @@ def chart():
     app.run_server(debug=False)  # DEBUG TRUE WILL conflict with gunbot
 
 
-# def run():
-#
-#     GBI = GunBotConfigInterface()  # TODO: Logging
-#     GBI.update_config_from_toml()
-#     GBI.write_to_gunbot_config()
-#
-#     while True:
-#         print('Looking for a hot coins...')
-#
-#         binance_data = BinanceDataFrameCreator.prepare_dataframes()
-#         binance_btc = binance_data['BTC']
-#         binance_filtered = SuperFilter.filter(binance_btc)
-#         print('FOUND:', binance_filtered)
-#         print('Equity Curve Running on...')
-#         print('* Running on http://127.0.0.1:8050/ (Press CTRL+C to quit)')
-#
-#         sleep(30)
-#
-
 def run_command():
 
     BASEPATH = Path(__file__).parent / 'gunbot' / 'gunthy-linx64'
