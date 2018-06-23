@@ -131,28 +131,9 @@ class TomlConfigCheckTask(luigi.Task):
         GBI = GunBotConfigInterface()
 
 
-class CheckOtherTomlTask(luigi.Task):
-
-    def output(self):
-        paths = [DELISTED_PATH,
-                 STATE_PATH]
-
-        luigi_paths = [luigi.LocalTarget(str(p)) for p in paths]
-        return luigi_paths
-
-    def run(self):
-        delisted = {'delisted': ['BCX', 'LLT']}
-        with open(self.output()[0].path, 'w') as f:
-            f.write(toml.dumps(delisted))
-
-        states = {'hot': [], 'cold': [], 'frozen': []}
-        with open(self.output()[1].path, 'w') as f:
-            f.write(toml.dumps(states))
-
-
 class SystemCheckTask(luigi.WrapperTask):
     def requires(self):
-        return [GunbotFolderCheckTask(), TomlConfigCheckTask(), CheckOtherTomlTask()]
+        return [GunbotFolderCheckTask(), TomlConfigCheckTask()]
 
 
 def run():
