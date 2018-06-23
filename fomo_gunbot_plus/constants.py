@@ -1,3 +1,4 @@
+# SYSTEM IMPORTS
 from pathlib import Path
 
 BASEPATH = Path(__file__).parent
@@ -5,6 +6,8 @@ BASEPATH = Path(__file__).parent
 CLEAN_JSON_CONFIG_PATH = BASEPATH.parent / 'clean.json'
 
 CONFIGURATION_PATH = BASEPATH.parent / 'configuration'
+
+CONFIGFILE_PATH = BASEPATH.parent / 'config.toml'
 
 STATE_PATH = BASEPATH.parent / 'states.toml'
 

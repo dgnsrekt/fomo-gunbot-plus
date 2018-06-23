@@ -22,7 +22,7 @@ from fomo_gunbot_plus import view
 from fomo_gunbot_plus import systemcheck
 from fomo_gunbot_plus.title import show_title
 from fomo_gunbot_plus.watch_configuration import watch_configuration_folder
-import fomo_gunbot_plus.core
+from fomo_gunbot_plus.core import Core
 
 
 def run_chart():
@@ -62,7 +62,7 @@ def main():
     show_title()
     sleep(2)
 
-    one = multiprocessing.Process(target=fomo_gunbot_plus.core.run)
+    one = multiprocessing.Process(target=Core.run)
     two = multiprocessing.Process(target=run_gunthy)
     three = multiprocessing.Process(target=watch_configuration_folder)
 

@@ -17,8 +17,6 @@ from .constants import (CLEAN_JSON_CONFIG_PATH,
 
 from .states import ColdState, HotState
 
-# TODO: THIS SHOULD NOT init exchange and token info.
-# TODO: THIS should update the gunbot config, read clean.json, and read configuration toml files
 # TODO: ad debug structlog
 
 

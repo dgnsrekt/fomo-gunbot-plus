@@ -1,73 +1,82 @@
-from .gunbot_interface import GunBotConfigInterface, GunBotStateInterface
-
-from fomo_superfilter.interface import BinanceDataFrameCreator
-from fomo_superfilter.superfilter import SuperFilter
-
-from .models.superhot import SuperHot, create_superhot_table
-from .models.balance import Balance, create_balance_table, clean_balance_table
+# SYSTEM IMPORTS
 from time import sleep
 
+# THIRD PARTY IMPORTS
+from fomo_superfilter.interface import BinanceDataFrameCreator
+from fomo_superfilter.superfilter import SuperFilter
+import structlog
 
-def display_equity_curve_url():  # IDEA: Move to chart module
-    print('Equity Curve Running on...')
-    print('* Running on http://127.0.0.1:8050/ (Press CTRL+C to quit)')
-
-
-def filter_hot():
-    print('Searching for hot coins...')
-    binance_data = BinanceDataFrameCreator.prepare_dataframes()
-    binance_btc = binance_data['BTC']
-    binance_hot = SuperFilter.filter(binance_btc)
-    binance_hot = [hot.split('BTC')[0] for hot in binance_hot]
-
-    binance_names = list(binance_btc.index)
-    binance_names = [name.split('BTC')[0] for name in binance_names]
-    binance_names.sort()
-
-    if not SuperHot.table_exists():
-        create_superhot_table()
-
-    for hot in binance_hot:
-        SuperHot.add_coin(hot)
-        print(f'Superfilter found {hot}.')
+# LOCAL IMPORTS
+from .gunbot_interface import GunBotConfigInterface, GunBotStateInterface
+from .configuration import Configuration
+from .models.superhot import SuperHot, create_superhot_table
+from .models.balance import Balance, create_balance_table, clean_balance_table
 
 
-def filter_cold():
-    print('Fetching bags...')
-    gbot_pipe = GunBotStateInterface()
+class Core:
 
-    bags = gbot_pipe.fetch_bags
+    logger = structlog.get_logger()
 
-    if not Balance.table_exists():
-        create_balance_table()
+    @classmethod
+    def filter_hot(cls):
+        cls.logger.info('Searching for hot coins...')
+        config = Configuration()
+        ignore_pairs = config.general['IGNORE_PAIRS']
+        cls.logger.info(f'Ignoring pairs: {ignore_pairs}')
 
-    # clean_balance_table() #TODO: add a config option to reset chart, also it will backup old charts
+        binance_data = BinanceDataFrameCreator.prepare_dataframes()
+        binance_btc = binance_data['BTC']
+        binance_hot = SuperFilter.filter(binance_btc)
+        binance_hot = [hot.split('BTC')[0] for hot in binance_hot]
 
-    Balance.add(gbot_pipe.estimated_value)
+        binance_names = list(binance_btc.index)
+        binance_names = [name.split('BTC')[0] for name in binance_names]
+        binance_names.sort()
 
-    return bags
+        if not SuperHot.table_exists():
+            create_superhot_table()
 
+        for hot in binance_hot:
+            if hot not in ignore_pairs:
+                SuperHot.add_coin(hot)
+                cls.logger.info(f'Superfilter found {hot}.')
 
-def run():
+    @classmethod
+    def filter_cold(cls):
+        cls.logger.info('Fetching bags...')
+        GBSI = GunBotStateInterface()
 
-    GBI = GunBotConfigInterface()
-    GBI.update_config_from_toml()
-    GBI.write_to_gunbot_config()
+        bags = GBSI.fetch_bags
 
-    while True:
-        filter_hot()
-        hot = SuperHot.fetch_hot()
+        if not Balance.table_exists():
+            create_balance_table()
 
-        bags = filter_cold()
+        # clean_balance_table() #TODO: add a config option to reset chart, also it will backup old charts
 
-        cold = [c for c in bags if c not in hot]
+        Balance.add(GBSI.estimated_value)
 
+        return bags
+
+    @classmethod
+    def run(cls):
         GBI = GunBotConfigInterface()
         GBI.update_config_from_toml()
-        GBI.update_pairs(hot, cold, 'binance')  # TODO: Get exchange from a configuration
         GBI.write_to_gunbot_config()
 
-        print(f'Bags: {bags}')
-        print(f'Current hot coins in db:{hot}')
+        while True:
+            cls.filter_hot()
+            hot = SuperHot.fetch_hot()
 
-        sleep(30)
+            bags = cls.filter_cold()
+
+            cold = [c for c in bags if c not in hot]
+
+            GBI = GunBotConfigInterface()
+            GBI.update_config_from_toml()
+            GBI.update_pairs(hot, cold, 'binance')  # TODO: Get exchange from a configuration
+            GBI.write_to_gunbot_config()
+
+            cls.logger.info(f'Bags: {bags}')
+            cls.logger.info(f'Current hot coins in db:{hot}')
+
+            sleep(30)

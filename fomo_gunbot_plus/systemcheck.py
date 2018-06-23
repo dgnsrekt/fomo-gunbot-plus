@@ -8,8 +8,10 @@ from pathlib import Path
 import shutil
 
 from .gunbot_interface import GunBotConfigInterface
+from .configuration import Configuration
 from .constants import (BASEPATH,
                         CONFIGURATION_PATH,
+                        CONFIGFILE_PATH,
                         CLEAN_JSON_CONFIG_PATH,
                         TEMP_GUNBOT_EXTRACTPATH,
                         GUNBOT_DOWNLOAD_PATH,
@@ -131,9 +133,18 @@ class TomlConfigCheckTask(luigi.Task):
         GBI = GunBotConfigInterface()
 
 
+class MainConfigTomlTask(luigi.Task):
+
+    def output(self):
+        return luigi.LocalTarget(str(CONFIGFILE_PATH))
+
+    def run(self):
+        config = Configuration()
+
+
 class SystemCheckTask(luigi.WrapperTask):
     def requires(self):
-        return [GunbotFolderCheckTask(), TomlConfigCheckTask()]
+        return [GunbotFolderCheckTask(), TomlConfigCheckTask(), MainConfigTomlTask()]
 
 
 def run():
