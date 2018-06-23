@@ -1,26 +1,28 @@
+# SYSTEM IMPORTS
 from pathlib import Path
 from subprocess import Popen, PIPE, STDOUT
-from fomo_gunbot_plus.title import show_title
-from fomo_gunbot_plus import view
-from fomo_gunbot_plus import systemcheck
-from fomo_gunbot_plus.watch_configuration import watch_configuration_folder
-import fomo_gunbot_plus.core
-
+from time import sleep
+import multiprocessing
+import os
 import shlex
 import sys
-import os
-import multiprocessing
 import threading
 import webbrowser
-from time import sleep
 
-import plotly
-from plotly.offline import plot
-import plotly.graph_objs as go
-
+# THIRD PARTY IMPORTS
 from dash import Dash
+from plotly.offline import plot
 import dash_core_components as dcc
 import dash_html_components as html
+import plotly
+import plotly.graph_objs as go
+
+# LOCAL IMPORTS
+from fomo_gunbot_plus import view
+from fomo_gunbot_plus import systemcheck
+from fomo_gunbot_plus.title import show_title
+from fomo_gunbot_plus.watch_configuration import watch_configuration_folder
+import fomo_gunbot_plus.core
 
 
 def chart():
