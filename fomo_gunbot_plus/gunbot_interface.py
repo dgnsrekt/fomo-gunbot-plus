@@ -134,6 +134,22 @@ class GunBotConfigInterface:
             self.check_configuration_toml_folder()
 
 
+@retry(retry=retry_if_exception_type(json.decoder.JSONDecodeError), stop=stop_after_attempt(3))
+def state_file_reader(path_):
+    with open(path_, 'r') as f:
+        data = json.loads(f.read())
+    return data
+
+
+def parse_name_from_path(path_):
+    return path_.name.split('-')[2]
+
+
+def parse_datetime(path_):
+    mtime = path_.stat().st_mtime
+    return datetime.utcfromtimestamp(mtime)
+
+
 class GunBotStateInterface:
 
     def __init__(self):
@@ -148,39 +164,21 @@ class GunBotStateInterface:
         if self.state_file_data:
             self._transform()
 
-    @staticmethod  # attempt at fixing JSONDecodeError
-    def state_file_reader(path_):
-        try:
-            with open(path_, 'r') as f:
-                return json.loads(f.read())
-        except json.decode.JSONDecodeError:
-            sleep(1)
-            with open(path_, 'r') as f:
-                return json.loads(f.read())
-
-    @staticmethod
-    def parse_name_from_path(path_):
-        return path_.name.split('-')[2]
-
-    @staticmethod
-    def parse_datetime(path_):
-        mtime = path_.stat().st_mtime
-        return datetime.utcfromtimestamp(mtime)
-
     def _extract(self):
         trade_state_paths = sorted(GUNBOT_PATH.glob('*-state.json'),
                                    key=os.path.getmtime, reverse=True)
 
         temp = []
         for jsonpath in trade_state_paths:
-            data = GunBotStateInterface.state_file_reader(jsonpath)
-            time = GunBotStateInterface.parse_datetime(jsonpath)
-            name = GunBotStateInterface.parse_name_from_path(jsonpath)
+            data = state_file_reader(jsonpath)
+            time = parse_datetime(jsonpath)
+            name = parse_name_from_path(jsonpath)
 
             data['name'] = name
             data['time'] = time
 
-            temp.append(data)
+            if data != None:
+                temp.append(data)
 
         if len(temp) > 0:
             return temp
