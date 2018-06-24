@@ -13,6 +13,10 @@ from plotly.offline import plot
 # LOCAL IMPORTS
 from .models.view import Status
 
+COLORS = dict()
+COLORS['balance'] = '#00A2D8'
+COLORS['positions'] = '#FF7733'
+
 
 class Chart:
 
@@ -55,6 +59,8 @@ class Chart:
                 x=list(index),
                 y=list(balance),
                 mode='lines',
+                marker=dict(size=14,
+                            color=COLORS['balance']),
                 connectgaps=True
             )
 
@@ -63,7 +69,8 @@ class Chart:
                 x=list(index),
                 y=list(positions),
                 yaxis='y2',
-                mode='markers'
+                mode='markers',
+                marker=dict(color=COLORS['positions'])
             )
             layout = go.Layout(plot_bgcolor='#000000',
                                paper_bgcolor='#000000',
@@ -71,9 +78,11 @@ class Chart:
                                xaxis=dict(autorange=True,
                                           title='TIME'),
                                yaxis=dict(autorange=True,
+                                          color=COLORS['balance'],
                                           title='BTC BALANCE'),
                                yaxis2=dict(autorange=True,
                                            title='OPEN POSITIONS',
+                                           color=COLORS['positions'],
                                            overlaying='y',
                                            side='right',
                                            range=[0, int(max(positions) + 5)])
