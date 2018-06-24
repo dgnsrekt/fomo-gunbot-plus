@@ -6,6 +6,7 @@ import toml
 from collections import ChainMap, OrderedDict
 from copy import deepcopy
 from datetime import datetime
+from time import sleep
 
 # THIRD PARTY IMPORTS
 import pandas as pd
@@ -142,7 +143,14 @@ def state_file_reader(path_):
     except json.decoder.JSONDecodeError as e:
         print(path_)
         print(e)
-        return None
+        print('Attempting a second read in 1 second.')
+        sleep(1)
+        try:
+            with open(path_, 'r') as f:
+                data = json.loads(f.read())
+            return data
+        except Exception as e:
+            print(e)
 
 
 def parse_name_from_path(path_):
