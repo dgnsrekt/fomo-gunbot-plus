@@ -64,6 +64,7 @@ class Core:
 
         config = Configuration()
         reset_chart = config.general['RESET_CHART_DATA']
+        force_bags = config.general['FORCE_BAGS']
 
         if reset_chart:
             ViewTables.clean()
@@ -73,6 +74,11 @@ class Core:
             hot = SuperHot.fetch_hot()
 
             bags = cls.filter_cold()
+            if force_bags:
+                for b in force_bags:
+                    if b not in bags:
+                        bags.append(b)
+                        cls.logger.info(f'{b} Forced to bags list.')
 
             cold = [c for c in bags if c not in hot]
 

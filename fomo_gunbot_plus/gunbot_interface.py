@@ -140,6 +140,7 @@ def state_file_reader(path_):
             data = json.loads(f.read())
         return data
     except json.decoder.JSONDecodeError as e:
+        print(path_)
         print(e)
         return None
 
