@@ -11,7 +11,7 @@ from dash.dependencies import Output, Event
 from plotly.offline import plot
 
 # LOCAL IMPORTS
-from .models.balance import Balance
+from .models.view import Status
 
 
 class Chart:
@@ -19,42 +19,62 @@ class Chart:
     @classmethod
     def get_chart(cls):
 
-        data = Balance.pull()
+        data = Status.fetch()
+
+        top_div = html.Div([html.H1('FOMO DRIVEN DEVELOPMENT')])
+        top_div2 = html.Div([html.H2('GUNBOT SUPER FILTER')])
+        banner = html.Div([top_div, top_div2], className='banner')
+
+        bottom_div = html.Div([
+            dcc.Graph(id='live-graph', animate=True),
+            dcc.Interval(id='graph-update', interval=15*1000,)])
 
         app = dash.Dash(__name__)
-        app.layout = html.Div([
-            html.H1('FOMO DRIVEN DEVELOPMENT',
-                    style={'textAlign': 'center'}),
+        app.layout = html.Div([banner, bottom_div], className='container')
 
-            html.H1('GUNBOT SUPER FILTER',
-                    style={'textAlign': 'center'}),
+        app.css.append_css(
+            {'external_url': 'https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700'})
 
-            dcc.Graph(id='live-graph', animate=True),
+        app.css.append_css(
+            {'external_url': 'https://codepen.io/dgnsrekt/pen/wXXNWM.css'})
 
-            dcc.Interval(id='graph-update',
-                         interval=15*1000,
-                         )
-        ])
+        app.css.append_css(
+            {'external_url': 'https://codepen.io/dgnsrekt/pen/dKKKLP.css'})
 
         @app.callback(Output('live-graph', 'figure'),
                       events=[Event('graph-update', 'interval')])
         def update_graph():
-            data = Balance.pull()
+            data = Status.fetch()
 
-            trace = go.Scatter(
-                name='equity-curve',
+            b_trace = go.Scatter(
+                name='balance-btc',
                 x=list(data.index),
-                y=list(data.btc),
+                y=list(data.balance),
                 mode='lines',
                 connectgaps=True
             )
-            layout = go.Layout(title='EQUITY CURVE',
+
+            p_trace = go.Scatter(
+                name='positions',
+                x=list(data.index),
+                y=list(data.positions),
+                yaxis='y2',
+                mode='markers'
+            )
+            layout = go.Layout(plot_bgcolor='#000000',
+                               paper_bgcolor='#000000',
+                               font=dict(family='Source Sans Pro'),
                                xaxis=dict(autorange=True,
                                           title='TIME'),
                                yaxis=dict(autorange=True,
-                                          title='BTC')
+                                          title='BTC BALANCE'),
+                               yaxis2=dict(autorange=True,
+                                           title='OPEN POSITIONS',
+                                           overlaying='y',
+                                           side='right',
+                                           range=[0, 15])
                                )
-            return {'data': [trace], 'layout': layout}
+            return {'data': [b_trace, p_trace], 'layout': layout}
         return app
 
 
