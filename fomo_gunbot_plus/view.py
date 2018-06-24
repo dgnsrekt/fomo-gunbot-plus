@@ -46,18 +46,22 @@ class Chart:
         def update_graph():
             data = Status.fetch()
 
+            index = data.index
+            balance = data.balance
+            positions = data.positions
+
             b_trace = go.Scatter(
                 name='balance-btc',
-                x=list(data.index),
-                y=list(data.balance),
+                x=list(index),
+                y=list(balance),
                 mode='lines',
                 connectgaps=True
             )
 
             p_trace = go.Scatter(
                 name='positions',
-                x=list(data.index),
-                y=list(data.positions),
+                x=list(index),
+                y=list(positions),
                 yaxis='y2',
                 mode='markers'
             )
@@ -72,7 +76,7 @@ class Chart:
                                            title='OPEN POSITIONS',
                                            overlaying='y',
                                            side='right',
-                                           range=[0, 15])
+                                           range=[0, int(max(positions) + 5)])
                                )
             return {'data': [b_trace, p_trace], 'layout': layout}
         return app
