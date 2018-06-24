@@ -134,11 +134,14 @@ class GunBotConfigInterface:
             self.check_configuration_toml_folder()
 
 
-@retry(retry=retry_if_exception_type(json.decoder.JSONDecodeError), stop=stop_after_attempt(3))
 def state_file_reader(path_):
-    with open(path_, 'r') as f:
-        data = json.loads(f.read())
-    return data
+    try:
+        with open(path_, 'r') as f:
+            data = json.loads(f.read())
+        return data
+    except json.decoder.JSONDecodeError as e:
+        print(e)
+        return None
 
 
 def parse_name_from_path(path_):
@@ -206,7 +209,6 @@ class GunBotStateInterface:
         self.real_bags = list(current_df[current_df['btc_value'] > 0.0001]['name'])
         self.all_pairs = list(balances.keys())
 
-    @property
     def fetch_bags(self):
         if len(self.real_bags) > 0:
             return self.real_bags

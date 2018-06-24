@@ -97,3 +97,4 @@ clean.json
 configuration/
 lin.zip
 config.toml
+ex_*
