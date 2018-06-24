@@ -7,7 +7,7 @@ from datetime import timedelta
 from peewee import *
 
 # LOCAL-APP
-from .base import BaseModel, db, get_current_date_time
+from .base import BaseModel, db, get_current_date_time, TableMaker
 
 
 class SuperHot(BaseModel):
@@ -54,16 +54,4 @@ class SuperHot(BaseModel):
         return list(df.tail(max_)['name'])
 
 
-def create_superhot_table():
-    db.create_tables([SuperHot])
-    logging.info('Telegram Table Created')
-
-
-def drop_superhot_table():
-    db.drop_tables([SuperHot])
-    logging.info('Telegram Table Dropped')
-
-
-def clean_superhot_table():
-    drop_superhot_table()
-    create_superhot_table()
+SuperHotTables = TableMaker([SuperHot])

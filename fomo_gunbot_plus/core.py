@@ -9,8 +9,8 @@ import structlog
 # LOCAL IMPORTS
 from .gunbot_interface import GunBotConfigInterface, GunBotStateInterface
 from .configuration import Configuration
-from .models.superhot import SuperHot, create_superhot_table
-from .models.balance import Balance, create_balance_table, clean_balance_table
+from .models.superhot import SuperHot, SuperHotTables
+from .models.view import Status, ViewTables
 
 
 class Core:
@@ -34,7 +34,7 @@ class Core:
         binance_names.sort()
 
         if not SuperHot.table_exists():
-            create_superhot_table()
+            SuperHotTables.create()
 
         for hot in binance_hot:
             if hot not in ignore_pairs:
@@ -45,15 +45,14 @@ class Core:
     def filter_cold(cls):
         cls.logger.info('Fetching bags...')
         GBSI = GunBotStateInterface()
+        bags = GBSI.fetch_bags()
 
-        bags = GBSI.fetch_bags
-
-        if not Balance.table_exists():
-            create_balance_table()
+        if not Status.table_exists():
+            ViewTables.create()
 
         # clean_balance_table() #TODO: add a config option to reset chart, also it will backup old charts
 
-        Balance.add(GBSI.estimated_value)
+        Status.update(GBSI.estimated_value, len(bags))
 
         return bags
 
@@ -62,6 +61,12 @@ class Core:
         GBI = GunBotConfigInterface()
         GBI.update_config_from_toml()
         GBI.write_to_gunbot_config()
+
+        config = Configuration()
+        reset_chart = config.general['RESET_CHART_DATA']
+
+        if reset_chart:
+            ViewTables.clean()
 
         while True:
             cls.filter_hot()

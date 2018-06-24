@@ -24,6 +24,7 @@ class Configuration:
         general = dict()
         general['IGNORE_PAIRS'] = ['USDT', 'TUSD']
         general['EXCHANGE'] = 'binance'
+        general['RESET_CHART_DATA'] = False
 
         data = dict()
         data['GENERAL'] = general

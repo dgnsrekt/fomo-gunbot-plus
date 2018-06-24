@@ -78,5 +78,5 @@ def main():
 
 
 if __name__ == '__main__':
-    SystemCheck.run()
+    SystemCheck.run()  # TODO: Stop program if systemcheck fails
     main()
