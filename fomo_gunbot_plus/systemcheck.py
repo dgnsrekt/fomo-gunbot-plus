@@ -160,4 +160,4 @@ class SystemCheck:
     @classmethod
     def run(cls):
         cls.logger.info('Running Systems Checks...')
-        luigi.build([SystemCheckTask()], local_scheduler=True)
+        return luigi.build([SystemCheckTask()], local_scheduler=True)

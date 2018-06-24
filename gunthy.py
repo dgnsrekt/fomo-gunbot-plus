@@ -78,5 +78,7 @@ def main():
 
 
 if __name__ == '__main__':
-    SystemCheck.run()  # TODO: Stop program if systemcheck fails
-    main()
+    if SystemCheck.run() == True:  # TODO: Stop program if systemcheck fails
+        main()
+    else:
+        print('System Check did not pass. Gunbot will not run.')
