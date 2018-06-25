@@ -5,8 +5,8 @@ import structlog
 import toml
 from collections import ChainMap, OrderedDict
 from copy import deepcopy
-from datetime import datetime
-from time import sleep
+from datetime import datetime, timedelta
+from time import sleep, ctime
 
 # THIRD PARTY IMPORTS
 import pandas as pd
@@ -20,7 +20,7 @@ from .constants import (CLEAN_JSON_CONFIG_PATH,
                         DELISTED_PATH,
                         BASEPATH)
 
-from .states import ColdState, HotState
+from .states import ColdState, HotState, DumpState
 
 
 class GunBotConfigInterface:
@@ -46,19 +46,21 @@ class GunBotConfigInterface:
 
         self.config = order_config
 
-    def update_pairs(self, hotpairs, coldpairs, exchange):
+    def update_pairs(self, hotpairs, coldpairs, dumppairs, exchange):
         self.update_config_from_toml()
 
         h = HotState(hotpairs)
         c = ColdState(coldpairs)
+        d = DumpState(dumppairs)
 
         h_pairs = h.prepare_config()
         c_pairs = c.prepare_config()
+        d_pairs = d.prepare_config()
 
-        hotcold = {**h_pairs, **c_pairs}
+        hot_cold_dump = {**h_pairs, **c_pairs, **d_pairs}
 
         pairs = dict()
-        pairs[exchange] = hotcold
+        pairs[exchange] = hot_cold_dump
 
         self.config['pairs'] = pairs
 
@@ -162,6 +164,16 @@ def parse_datetime(path_):
     return datetime.utcfromtimestamp(mtime)
 
 
+def convert_ctime_to_datetime(n):
+    return datetime.strptime(ctime(n), "%a %b %d %H:%M:%S %Y")
+
+
+def get_time_since_datetime(n):
+    now = n['now']
+    bought = n['bought']
+    return now - bought
+
+
 class GunBotStateInterface:
 
     def __init__(self):
@@ -172,6 +184,7 @@ class GunBotStateInterface:
         self.raw_bags = []
         self.real_bags = []
         self.all_pairs = []
+        self.dumpable = []
 
         if self.state_file_data:
             self._transform()
@@ -202,12 +215,23 @@ class GunBotStateInterface:
         positive_balances = [bal for bal in balances if balances[bal]['available'] > 0]
 
         state_df = pd.DataFrame(self.state_file_data)
-        columns = ['name', 'Bid', 'Ask', 'quoteBalance', 'baseBalance', 'time']
+        columns = ['name', 'Bid', 'Ask', 'quoteBalance', 'baseBalance', 'time', 'whenwebought']
         current_df = state_df[columns]
         current_df = current_df[current_df['name'].isin(positive_balances)]
         current_df['price'] = (current_df['Bid'] + current_df['Ask']) / 2
         current_df['btc_value'] = current_df['price'] * current_df['quoteBalance']
-        current_df.columns = ['name', 'bid', 'ask', 'balance', 'btc', 'time', 'price', 'btc_value']
+        current_df.columns = ['name', 'bid', 'ask', 'balance',
+                              'btc', 'time', 'whenwebought', 'price', 'btc_value']
+
+        now = datetime.now()
+        current_df['now'] = now
+        current_df['bought'] = current_df['whenwebought'].apply(convert_ctime_to_datetime)
+        current_df['time_since_bought'] = current_df.apply(get_time_since_datetime, axis=1)
+
+        # TODO: to_timedelta should be configurable
+
+        dumpable = current_df[['name']][current_df.time_since_bought > pd.to_timedelta('1day')]
+        self.dumpable = list(dumpable['name'])
 
         self.raw_bags = positive_balances
         try:

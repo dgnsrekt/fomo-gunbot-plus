@@ -31,6 +31,8 @@ class Configuration:
         general['FORCE_BAGS'] = []
         general['EXCHANGE'] = 'binance'
         general['RESET_CHART_DATA'] = False
+        general['MAX_BAGS_TIL_DUMP'] = 5
+        general['DUMP_BAGS_OVER_24H_OLD'] = False
 
         data = dict()
         data['GENERAL'] = general

@@ -46,6 +46,7 @@ class Core:
         cls.logger.info('Fetching bags...')
         GBSI = GunBotStateInterface()
         bags = GBSI.fetch_bags()
+        dumpers = GBSI.dumpable
 
         if not Status.table_exists():
             ViewTables.create()
@@ -54,7 +55,7 @@ class Core:
 
         Status.update(GBSI.estimated_value, len(bags))
 
-        return bags
+        return bags, dumpers
 
     @classmethod
     def run(cls):
@@ -65,6 +66,7 @@ class Core:
         config = Configuration()
         reset_chart = config.general['RESET_CHART_DATA']
         force_bags = config.general['FORCE_BAGS']
+        max_bags = config.general['MAX_BAGS_TIL_DUMP']
 
         if reset_chart:
             ViewTables.clean()
@@ -73,18 +75,25 @@ class Core:
             cls.filter_hot()
             hot = SuperHot.fetch_hot()
 
-            bags = cls.filter_cold()
+            bags, dumpers = cls.filter_cold()
             if force_bags:
                 for b in force_bags:
                     if b not in bags:
                         bags.append(b)
-                        cls.logger.info(f'{b} Forced to bags list.')
+                        cls.logger.info(f'{b} forced to bags list.')
 
             cold = [c for c in bags if c not in hot]
+            if len(cold) > max_bags:
+                dump = [d for d in cold if d in dumpers]
+                cold = [c for c in cold if c not in dump]
+                cls.logger.info(f'dumpable: {dump}')
+                cls.logger.info(f'hodling: {cold}')
+            else:
+                dump = list()
 
             GBI = GunBotConfigInterface()
             GBI.update_config_from_toml()
-            GBI.update_pairs(hot, cold, 'binance')  # TODO: Get exchange from a configuration
+            GBI.update_pairs(hot, cold, dump, 'binance')  # TODO: Get exchange from a configuration
             GBI.write_to_gunbot_config()
 
             cls.logger.info(f'Bags: {bags}')
