@@ -51,8 +51,6 @@ class Core:
         if not Status.table_exists():
             ViewTables.create()
 
-        # clean_balance_table() #TODO: add a config option to reset chart, also it will backup old charts
-
         Status.update(GBSI.estimated_value, len(bags))
 
         return bags, dumpers
@@ -66,6 +64,7 @@ class Core:
         config = Configuration()
         reset_chart = config.general['RESET_CHART_DATA']
         force_bags = config.general['FORCE_BAGS']
+        exchange = config.general['EXCHANGE']
         max_bags = config.general['MAX_BAGS_TIL_DUMP']
 
         if reset_chart:
@@ -93,7 +92,7 @@ class Core:
 
             GBI = GunBotConfigInterface()
             GBI.update_config_from_toml()
-            GBI.update_pairs(hot, cold, dump, 'binance')  # TODO: Get exchange from a configuration
+            GBI.update_pairs(hot, cold, dump, exchange)
             GBI.write_to_gunbot_config()
 
             cls.logger.info(f'Bags: {bags}')

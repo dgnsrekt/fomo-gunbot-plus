@@ -22,7 +22,6 @@ def show_title():
     print(Fore.YELLOW + ph)
     print(Style.RESET_ALL, end='')
 
-    # print(ph, '  GUNBOT SUPER FILTER  ', ph)  # TODO: pull version number from setup or __ver__.py
     print(ph, f'     VERSION: {__version__}    ', ph)
     print()
 

@@ -76,7 +76,6 @@ class GunBotConfigInterface:
         return diff
 
     def write_to_gunbot_config(self):
-        # TODO Compare current file dictions to what is being written if no changes do nothing.
         if not self.check_for_change():
             data = self._dump_json()
             with open(CONFIG_JS_PATH, 'w') as f:

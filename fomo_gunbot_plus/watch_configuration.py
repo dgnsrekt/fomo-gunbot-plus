@@ -16,7 +16,7 @@ class ConfigurationHandler(PatternMatchingEventHandler):
     patterns = ['*.toml']
 
     def process(self, event):
-        self.logger.info(f'{event.src_path}|{event.event_type}')  # TODO: Change to structlog
+        self.logger.info(f'{event.src_path}|{event.event_type}')
         GBI = GunBotConfigInterface()
         GBI.update_config_from_toml()
         GBI.update_pairs_from_live()
