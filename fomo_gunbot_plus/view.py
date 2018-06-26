@@ -16,6 +16,7 @@ from .models.view import Status
 COLORS = dict()
 COLORS['balance'] = '#00A2D8'
 COLORS['positions'] = '#FF7733'
+COLORS['legend'] = '#FFFFFF'
 
 
 class Chart:
@@ -72,10 +73,12 @@ class Chart:
                 mode='markers',
                 marker=dict(color=COLORS['positions'])
             )
-            layout = go.Layout(plot_bgcolor='#000000',
+            layout = go.Layout(legend=dict(font=dict(color=COLORS['legend'])),
+                               plot_bgcolor='#000000',
                                paper_bgcolor='#000000',
                                font=dict(family='Source Sans Pro'),
                                xaxis=dict(autorange=True,
+                                          color=COLORS['legend'],
                                           title='TIME'),
                                yaxis=dict(autorange=True,
                                           color=COLORS['balance'],
